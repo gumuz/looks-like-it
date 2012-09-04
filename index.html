@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <title>Looks like it</title>
+    </head>
+    <body>
+        <h1>Looks like it</h1>
+        <p>demo for <a href="http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html">this</a></p>
+        <img src="test1.jpg" alt="test picture 1" id="src_img" style="float: left; margin-right: 25px;">
+
+        <ul style="float: right; margin-right: 200px;">
+            <li>
+                <strong>Step 1: Reduce size</strong>
+                <p>
+                    <img src="" width="64" height="64" alt="step 1: reduce size" id='step1_img'>
+                </p>
+            </li>
+            <li>
+                <strong>Step 2: Reduce colors to grayscale</strong>
+                <p>
+                    <img src="" width="64" height="64" alt="step 2: reduce size" id='step2_img'>
+                </p>
+            </li>
+            <li>
+                <strong>Step 3: Average the colors</strong>
+                <p>
+                    <img src="" width="64" height="64" alt="step 3: average the colors" id='step3_img'>
+                </p>
+            </li>
+            <li>
+                <strong>Step 4: Compute the bits</strong>
+                <p>
+                    <img src="" width="64" height="64" alt="step 4: Compute the bits" id='step4_img'>
+                </p>
+            </li>
+            <li>
+                <strong>Step 5: Construct the hash</strong>
+                <p>
+                    <span id="step5_hash"></span>
+                </p>
+            </li>
+        </ul>
+
+        <script type="text/javascript">
+            (function() {
+                var canvas = document.createElement('CANVAS'),
+                    ctx = canvas.getContext('2d');
+
+                canvas.width = 8;
+                canvas.height = 8;
+
+                var srcImg = document.getElementById('src_img');
+
+                srcImg.onload = function() {
+                    // resize
+                    ctx.drawImage(srcImg, 0, 0, 8, 8);
+
+                    // show progress in step 1
+                    var step1Img = document.getElementById('step1_img');
+                    step1Img.src = canvas.toDataURL();
+
+                    // grayscale
+                    var pixels = ctx.getImageData(0, 0, 8, 8),
+                        total = 0;
+                    for(var i=0, avg=0; i<pixels.data.length; i+=4) {
+                        avg = (pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/3;
+                        total += avg;
+                        pixels.data[i] = avg;
+                        pixels.data[i+1] = avg;
+                        pixels.data[i+2] = avg;
+                    }
+                    ctx.putImageData(pixels, 0, 0);
+
+                    // show progress in step 2
+                    var step2Img = document.getElementById('step2_img');
+                    step2Img.src = canvas.toDataURL();
+
+                    // compute mean
+                    var mean = parseInt(total/64);
+
+                    // show progress in step 3
+                    var step3Img = document.getElementById('step3_img');
+                    step3Img.style.backgroundColor = 'rgb(' + [mean,mean,mean].join(',') + ')';
+
+                    // compute bits & hash
+                    var hash = 0;
+                    for(var i=0, onoff=0; i<pixels.data.length; i+=4) {
+                        onoff = (pixels.data[i]<mean)?1:0;
+                        pixels.data[i] = onoff||256;
+                        pixels.data[i+1] = onoff||256;
+                        pixels.data[i+2] = onoff||256;
+
+                        hash = hash * 2 + onoff;
+                    }
+                    ctx.putImageData(pixels, 0, 0);
+
+                    // show progress in step 4
+                    var step4Img = document.getElementById('step4_img');
+                    step4Img.src = canvas.toDataURL();
+
+                    var step5Hash = document.getElementById('step5_hash');
+                    step5Hash.innerHTML = hash.toString(16);
+                };
+
+
+            })();
+        </script>
+    </body>
+</html>
